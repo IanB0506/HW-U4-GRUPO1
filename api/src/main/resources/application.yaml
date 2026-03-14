@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: hw4
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/dbii_hw4
+    username: postgres
+    password: root
+    driver-class-name: org.postgresql.Driver
+
+    hikari:
+      maximum-pool-size: 50 # Conexiones simultaneas a bd (10 por defecto)
+      minimum-idle: 10
+      connection-timeout: 20000
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  # Config de paginacion, endpoint GET /pedidos
+  data:
+    web:
+      pageable:
+        default-page-size: 50
+        max-page-size: 50
+
+# Config para el endpoint GET /healt
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: always

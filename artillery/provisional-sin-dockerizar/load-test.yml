@@ -1,0 +1,84 @@
+# Archivo de carga provisional, solo para hacer pruebas
+# Para la ejecución de todos los comandos es necesario tener instalada la version 2.X.XX, la versión 3 no deja crear html
+# Los comandos se deben ejecutar localmente, pero al estar mapeado al puerto 8080 realizará las pruebas al back dockerizado
+# Antes de realizar las pruebas hay que esperar a que la bd haya creado todos los registros, 
+# pueden ver el endpoint GET http://localhost:8080/actuator/health, en la parte de "db" debe aparecer "status": "UP"
+
+# Comandos recomendados (Solo para pruebas):
+# npm install -g artillery@2.0.0-27 (Si no lo tienen instalado, si ya lo tienen pueden asegurarse de tener la v2)
+
+# Primera ronda
+# Ejecutar la prueba de carga
+# artillery run artillery/load-test.yml --output results-no-index.json
+# Generar reporte HTML
+# artillery report results-no-index.json --output report-no-index.html
+
+#Segunda ronda
+# artillery run artillery/load-test.yml --output results-with-index.json
+# artillery report results-with-index.json --output report-with-index.html
+
+
+# Archivo load-test.yml
+config:
+  target: "http://localhost:8080"
+  phases:
+    # Fase de calentamiento: carga baja durante 30 segundos
+    - duration: 30
+      arrivalRate: 10
+      name: "Warmup"
+    # Carga sostenida: nivel medio durante 2 minutos
+    - duration: 120
+      arrivalRate: 50
+      name: "Sustained load"
+    # Pico de carga: nivel alto durante 30 segundos
+    - duration: 30
+      arrivalRate: 150
+      name: "Peak load"
+    # Enfriamiento
+    - duration: 30
+      arrivalRate: 10
+      name: "Cooldown"
+  defaults:
+    headers:
+      Content-Type: "application/json"
+      
+  variables:
+   region:
+     - "Norte"
+     - "Sur"
+     - "Este"
+     - "Oeste"
+
+scenarios:
+  # Escenario 1: carga mixta (escritura + lectura)
+  - name: "Carga mixta OLTP"
+    weight: 70
+    flow:
+      - post:
+          url: "/pedidos"
+          json:
+            clienteId: "{{ $randomNumber(1, 50000) }}"
+            productoId: "{{ $randomNumber(1, 10000) }}"
+            categoriaId: "{{ $randomNumber(1, 50) }}"
+            region: "{{ region }}"
+            cantidad: "{{ $randomNumber(1, 10) }}"
+            precioUnit: "{{ $randomNumber(5, 500) }}"
+            canal: "web"
+          capture:
+            - json: "$.id"
+              as: "pedidoId"
+      - get:
+          url: "/pedidos/{{ pedidoId }}"
+      - put:
+          url: "/pedidos/{{ pedidoId }}/status"
+          json:
+            status: "completed"
+
+  # Escenario 2: consulta analitica por region
+  - name: "Consulta analitica resumen"
+    weight: 30
+    flow:
+      - get:
+          url: "/pedidos/resumen?region={{ region }}"
+      - get:
+          url: "/pedidos?region={{ region }}&status=completed"

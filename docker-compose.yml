@@ -1,0 +1,40 @@
+#docker-compose provisional, solo crea contenedores para la bd y el back, no crea contenedor para artillery, ese se debe ejecutar local
+services:
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB:       dbii_hw4
+      POSTGRES_USER:     postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - pg_data:/var/lib/postgresql/data
+    ports:          # pueden colocar 5432 en lugar de 5433 si tienen ese puerto disponible,
+      - "5433:5432" # yo tenia una bd postgres local corriendo en ese puerto, pero al final no afecta el cambio
+    command: >      
+      postgres
+        -c shared_preload_libraries=pg_stat_statements
+        -c pg_stat_statements.track=all
+        -c max_connections=200
+        -c shared_buffers=256MB
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: ./api
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/dbii_hw4
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pg_data:
