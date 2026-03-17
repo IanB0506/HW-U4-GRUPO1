@@ -29,7 +29,7 @@ public class PedidoService {
         StopWatch watch = new StopWatch();
 
         pedido.setTotal(pedido.getPrecioUnit().multiply(BigDecimal.valueOf(pedido.getCantidad())));
-        pedido.setPedidoRef("PED-" + Instant.now().toEpochMilli() + "-" + random.nextInt(10000));
+        pedido.setPedidoRef("PED-" + java.util.UUID.randomUUID().toString().substring(0, 12).toUpperCase());
         pedido.setStatus("pending");
 
         watch.start();

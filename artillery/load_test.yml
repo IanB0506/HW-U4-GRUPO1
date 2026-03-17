@@ -1,0 +1,57 @@
+config:
+  target: "http://localhost:8080"
+  phases:
+    - duration: 30
+      arrivalRate: 5
+      name: "Warmup (Calentamiento)"
+    - duration: 120
+      arrivalRate: 20
+      name: "Sustained Load (Carga Constante)"
+    - duration: 30
+      arrivalRate: 60
+      name: "Peak Load (Pico de Carga)"
+  defaults:
+    headers:
+      Content-Type: "application/json"
+  variables:
+    # Estas regiones deben coincidir con las del init.sql
+    region:
+      - "Norte"
+      - "Sur"
+      - "Este"
+      - "Oeste"
+    status:
+      - "completed"
+      - "shipped"
+
+scenarios:
+  - name: "Flujo Completo de Pedido (Escritura + Lectura)"
+    weight: 70
+    flow:
+      - post:
+          url: "/pedidos"
+          json:
+            clienteId: "{{ $randomInt(1, 500000) }}"
+            productoId: "{{ $randomInt(1, 1000) }}"
+            categoriaId: "{{ $randomInt(1, 20) }}"
+            region: "{{ region }}"
+            precioUnit: "{{ $randomInt(10, 500) }}"
+            cantidad: "{{ $randomInt(1, 5) }}"
+            canal: "web"
+          capture:
+            - json: "$.id"
+              as: "idNuevo"
+      - get:
+          url: "/pedidos/{{ idNuevo }}"
+      - put:
+          url: "/pedidos/{{ idNuevo }}/status"
+          json:
+            status: "completed"
+
+  - name: "Consultas Analíticas (Resumen por Región)"
+    weight: 30
+    flow:
+      - get:
+          url: "/pedidos/resumen?region={{ region }}"
+      - get:
+          url: "/pedidos?region={{ region }}&status={{ status }}&page=0&size=50"

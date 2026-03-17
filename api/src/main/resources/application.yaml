@@ -1,21 +1,16 @@
 spring:
-  application:
-    name: hw4
-
   datasource:
-    url: jdbc:postgresql://localhost:5432/dbii_hw4
+    url: jdbc:postgresql://postgres:5432/dbii_hw4
     username: postgres
     password: root
     driver-class-name: org.postgresql.Driver
-
     hikari:
-      maximum-pool-size: 50 # Conexiones simultaneas a bd (10 por defecto)
+      maximum-pool-size: 50
       minimum-idle: 10
-      connection-timeout: 20000
-
+      connection-timeout: 30000
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
     show-sql: false
     properties:
       hibernate:

@@ -1,0 +1,41 @@
+config:
+  target: "http://localhost:8080"
+  phases:
+    - duration: 30
+      arrivalRate: 5
+      name: "Warmup"
+    - duration: 60
+      arrivalRate: 15  # Carga estable que tu CPU local puede procesar bien
+      name: "Sustained load"
+  variables:
+    region: ["Norte", "Sur", "Este", "Oeste"]
+
+scenarios:
+  - name: "Flujo Completo (Escritura + Lectura)"
+    weight: 70
+    flow:
+      - post:
+          url: "/pedidos"
+          json:
+            clienteId: 1
+            productoId: 1
+            categoriaId: 1
+            region: "{{ region }}"
+            precioUnit: 150.0
+            cantidad: 2
+            canal: "web"
+          capture:
+            - json: "$.id"
+              as: "pedidoId"
+      - get:
+          url: "/pedidos/{{ pedidoId }}"
+      - put:
+          url: "/pedidos/{{ pedidoId }}/status"
+          json:
+            status: "completed"
+
+  - name: "Consulta Analítica"
+    weight: 30
+    flow:
+      - get:
+          url: "/pedidos/resumen?region={{ region }}"
