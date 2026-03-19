@@ -7,6 +7,9 @@ config:
     - duration: 60
       arrivalRate: 15  # Carga estable que tu CPU local puede procesar bien
       name: "Sustained load"
+    - duration: 30
+      arrivalRate: 25 
+      name: "Peak load"
   variables:
     region: ["Norte", "Sur", "Este", "Oeste"]
 

@@ -1,0 +1,12 @@
+pg_index_stats:
+  query: "SELECT relname, indexrelname, idx_scan FROM pg_stat_user_indexes"
+  metrics:
+    - relname:
+        usage: "LABEL"
+        description: "Tabla"
+    - indexrelname:
+        usage: "LABEL"
+        description: "Indice"
+    - idx_scan:
+        usage: "COUNTER"
+        description: "Escaneos"

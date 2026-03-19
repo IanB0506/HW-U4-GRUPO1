@@ -3,19 +3,14 @@
     "list": []
   },
   "editable": true,
+  
   "panels": [
     {
       "type": "timeseries",
       "title": "Seq Scans vs Index Scans",
       "targets": [
-        {
-          "expr": "rate(pg_stat_user_tables_seq_scan{relname=\"pedidos\"}[1m])",
-          "legendFormat": "Seq Scans"
-        },
-        {
-          "expr": "rate(pg_stat_user_tables_idx_scan{relname=\"pedidos\"}[1m])",
-          "legendFormat": "Index Scans"
-        }
+        { "expr": "rate(pg_stat_user_tables_seq_scan{relname=\"pedidos\"}[1m])", "legendFormat": "Seq Scans" },
+        { "expr": "rate(pg_stat_user_tables_idx_scan{relname=\"pedidos\"}[1m])", "legendFormat": "Index Scans" }
       ],
       "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 }
     },
@@ -23,10 +18,7 @@
       "type": "timeseries",
       "title": "Dead Tuples en pedidos",
       "targets": [
-        {
-          "expr": "pg_stat_user_tables_n_dead_tup{relname=\"pedidos\"}",
-          "legendFormat": "Dead Tuples"
-        }
+        { "expr": "pg_stat_user_tables_n_dead_tup{relname=\"pedidos\"}", "legendFormat": "Dead Tuples" }
       ],
       "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 }
     },
@@ -34,10 +26,7 @@
       "type": "timeseries",
       "title": "Conexiones activas",
       "targets": [
-        {
-          "expr": "pg_stat_activity_count{datname=\"dbii_hw4\",state=\"active\"}",
-          "legendFormat": "Active Connections"
-        }
+        { "expr": "pg_stat_activity_count{state=\"active\"}", "legendFormat": "Active Connections" }
       ],
       "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 }
     },
@@ -45,10 +34,7 @@
       "type": "timeseries",
       "title": "Database Size",
       "targets": [
-        {
-          "expr": "pg_database_size_bytes{datname=\"dbii_hw4\"}",
-          "legendFormat": "DB Size"
-        }
+        { "expr": "pg_database_size_bytes{datname=\"dbii_hw4\"}", "legendFormat": "DB Size" }
       ],
       "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 }
     },
@@ -56,25 +42,23 @@
       "type": "timeseries",
       "title": "Insert Rate",
       "targets": [
-        {
-          "expr": "rate(pg_stat_user_tables_n_tup_ins{relname=\"pedidos\"}[1m])",
-          "legendFormat": "Inserts/s"
-        }
+        { "expr": "rate(pg_stat_user_tables_n_tup_ins{relname=\"pedidos\"}[1m])", "legendFormat": "Inserts/s" }
       ],
       "gridPos": { "x": 0, "y": 16, "w": 12, "h": 8 }
     },
     {
       "type": "timeseries",
-      "title": "Index Usage",
+      "title": "Uso de Índices Individuales (Análisis)",
       "targets": [
         {
-          "expr": "rate(pg_stat_user_indexes_idx_scan{relname=\"pedidos\"}[1m])",
+          "expr": "rate(pg_index_stats_idx_scan{relname=\"pedidos\"}[1m])",
           "legendFormat": "{{indexrelname}}"
         }
       ],
       "gridPos": { "x": 12, "y": 16, "w": 12, "h": 8 }
     }
-  ],
+  ]
+,
   "schemaVersion": 37,
   "style": "dark",
   "tags": [],

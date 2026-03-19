@@ -34,7 +34,6 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/dbii_hw4
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: root
-      # Ajustes de rendimiento para evitar errores 500 bajo carga
       SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: 40
       SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE: 10
       SPRING_DATASOURCE_HIKARI_IDLE_TIMEOUT: 10000
@@ -42,14 +41,26 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
 
   postgres-exporter:
     image: prometheuscommunity/postgres-exporter:latest
     container_name: exporter_hw4
     environment:
       DATA_SOURCE_NAME: "postgresql://postgres:root@postgres:5432/dbii_hw4?sslmode=disable"
+      PG_EXPORTER_EXTEND_QUERY_PATH: "/etc/postgres_exporter/queries.yml"
+    volumes:
+      - ./postgres/queries.yml:/etc/postgres_exporter/queries.yml
+    ports:
+      - "9187:9187"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
 
   prometheus:
     image: prom/prometheus:latest
