@@ -1,0 +1,35 @@
+config:
+  target: "http://localhost:8080"
+  phases:
+    - duration: 30
+      arrivalRate: 10
+      name: "Warmup"
+    - duration: 120
+      arrivalRate: 50
+      name: "Sustained load"
+    - duration: 30
+      arrivalRate: 150
+      name: "Peak load"
+    - duration: 30
+      arrivalRate: 10
+      name: "Cooldown"
+  defaults:
+    headers:
+      Content-Type: "application/json"
+      
+  variables:
+   region:
+     - "Norte"
+     - "Sur"
+     - "Este"
+     - "Oeste"
+
+scenarios:
+  # Escenario 2: consulta analitica por region
+  - name: "Consulta analitica resumen"
+    weight: 100
+    flow:
+      - get:
+          url: "/pedidos/resumen?region={{ region }}"
+      - get:
+          url: "/pedidos?region={{ region }}&status=completed"

@@ -3,6 +3,7 @@ version: '3.9'
 services:
   postgres:
     image: postgres:16
+    shm_size: 256mb
     container_name: db_hw4
     environment:
       POSTGRES_DB: dbii_hw4

@@ -40,7 +40,7 @@ artillery run artillery/load-test.yml --output artillery/results-con-index.json
 npx artillery@2.0.0-31 report artillery/results-con-index.json --output reporte-con-index.html
 
 -- revisar index existentes
-docker exec -it db_hw4 psql -U postgres -d dbii_hw4 -c "SELECT indexname, indexdef FROM pg_indexes WHERE tablename = 'usuarios';"
+docker exec -it db_hw4 psql -U postgres -d dbii_hw4 -c "SELECT indexname, indexdef FROM pg_indexes WHERE tablename = 'pedidos';"
 
 
 -- eliminar index si necesitan rehacer pruebas
@@ -72,6 +72,48 @@ docker exec -i db_hw4 psql -U postgres -d dbii_hw4 -c "CREATE INDEX IF NOT EXIST
 --Correr artilery para hacer prueba con los indices excesivos
 artillery run artillery/load-test.yml
 ------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+--Experimento 2--
+------------------------------------------------------------------------------------
+--Iniciar docker compose
+docker compose up --build -d
+docker compose up -d
+
+--Correr artilery para hacer prueba con el escenario analítico
+artillery run artillery/test-analitico.yml --output results-analytical-no-index.json
+
+--Creación del índice cubriente idx_pedidos_resumen_covering
+docker exec -i db_hw4 psql -U postgres -d dbii_hw4 -c "CREATE INDEX IF NOT EXISTS idx_pedidos_resumen_covering ON pedidos(region, status) INCLUDE (total); ANALYZE pedidos;"
+
+--Correr artilery para hacer prueba con los indices excesivos
+artillery run artillery/test-analitico.yml --output results-analytical-with-index.json
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+--Experimento 3--
+------------------------------------------------------------------------------------
+--Iniciar docker compose
+docker compose up --build -d
+docker compose up -d
+
+-- Comando para inserter index
+docker exec -it db_hw4 psql -U postgres -d dbii_hw4 -c "CREATE INDEX idx_pedidos_region_status ON pedidos(region, status, created_at DESC); CREATE INDEX idx_pedidos_resumen_covering ON pedidos(region, status) INCLUDE (total); ANALYZE pedidos;"
+
+--Correr artilery para hacer prueba con con los índices correctos
+artillery run artillery/test-analitico.yml
+
+--Al finalizar las pruebs de artillery ejecutar VACCUM ANALYZE
+docker exec -it db_hw4 psql -U postgres -d dbii_hw4 -c "VACUUM ANALYZE pedidos;"
+
+--Para verificar inmediatamente la cantidad de Dead Tuples (opcional)
+docker exec -it db_hw4 psql -U postgres -d dbii_hw4 -c "SELECT n_dead_tup FROM pg_stat_user_tables WHERE relname = 'pedidos';"
+------------------------------------------------------------------------------------
+
 
 --
 docker compose down

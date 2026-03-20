@@ -1,31 +1,48 @@
+# Archivo load-test.yml
 config:
   target: "http://localhost:8080"
   phases:
+    # Fase de calentamiento: carga baja durante 30 segundos
     - duration: 30
-      arrivalRate: 5
+      arrivalRate: 10
       name: "Warmup"
-    - duration: 60
-      arrivalRate: 15  # Carga estable que tu CPU local puede procesar bien
+    # Carga sostenida: nivel medio durante 2 minutos
+    - duration: 120
+      arrivalRate: 50
       name: "Sustained load"
+    # Pico de carga: nivel alto durante 30 segundos
     - duration: 30
-      arrivalRate: 25 
+      arrivalRate: 150
       name: "Peak load"
+    # Enfriamiento
+    - duration: 30
+      arrivalRate: 10
+      name: "Cooldown"
+  defaults:
+    headers:
+      Content-Type: "application/json"
+      
   variables:
-    region: ["Norte", "Sur", "Este", "Oeste"]
+   region:
+     - "Norte"
+     - "Sur"
+     - "Este"
+     - "Oeste"
 
 scenarios:
-  - name: "Flujo Completo (Escritura + Lectura)"
+  # Escenario 1: carga mixta (escritura + lectura)
+  - name: "Carga mixta OLTP"
     weight: 70
     flow:
       - post:
           url: "/pedidos"
           json:
-            clienteId: 1
-            productoId: 1
-            categoriaId: 1
+            clienteId: "{{ $randomNumber(1, 50000) }}"
+            productoId: "{{ $randomNumber(1, 10000) }}"
+            categoriaId: "{{ $randomNumber(1, 50) }}"
             region: "{{ region }}"
-            precioUnit: 150.0
-            cantidad: 2
+            cantidad: "{{ $randomNumber(1, 10) }}"
+            precioUnit: "{{ $randomNumber(5, 500) }}"
             canal: "web"
           capture:
             - json: "$.id"
@@ -37,8 +54,11 @@ scenarios:
           json:
             status: "completed"
 
-  - name: "Consulta Analítica"
+  # Escenario 2: consulta analitica por region
+  - name: "Consulta analitica resumen"
     weight: 30
     flow:
       - get:
           url: "/pedidos/resumen?region={{ region }}"
+      - get:
+          url: "/pedidos?region={{ region }}&status=completed"
